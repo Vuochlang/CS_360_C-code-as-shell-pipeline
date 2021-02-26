@@ -11,7 +11,7 @@
 
 <h3> Program Interface (Required) </h3>
 
-<h4> ./assignment4 <arg1> : <arg2> </h4>
+<h4><p> ./assignment4 <arg1> : <arg2> </h4></p>
 <p>"Where: <arg1> and <arg2> are optional parameters that specify the programs
 to be run. If <arg1> is specified but <arg2> is not, then <arg1> should be
 run as though there was not a colon. Same for if <arg2> is specified but
