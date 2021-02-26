@@ -68,51 +68,48 @@ int main(int argc, char *argv[]){
     }
     left[l++] = right[r++] = NULL;  // to terminate char*
 
+    if (rName == NULL) {  // only <argv1> provided, doesn't need to fork
+        if (execvp(lName, left) < 0) {
+            printf("%s\n", strerror(errno));
+            return (-errno);
+        }
+    }
+
+    if (lName == NULL) {  // only <argv2> provided, doesn't need to fork
+        if (execvp(rName, right) < 0) {
+            printf("%s\n", strerror(errno));
+            return (-errno);
+        }
+    }
+
     int fd[2], reader, writer;
     assert (pipe (fd) >= 0);
 	reader = fd[0];
 	writer = fd[1];
 
+    // <argv1> and <argv2> provided
 	if (fork()) {  // parent
         close(writer);
 
-        if (rName != NULL && lName != NULL) {  // <argv1> and <argv2> provided
-            dup2(reader, STDIN_FILENO);
-            dup2(writer, STDOUT_FILENO);
-            close(writer);
-            wait(0);  // wait for child to finish
+        dup2(reader, STDIN_FILENO);  // connect reader and take output from child
+        wait(0);  // wait for child to finish
 
-            if (execvp(rName, right) < 0) {
-                printf("%s\n", strerror(errno));
-            }
-            close(reader);
+        if (execvp(rName, right) < 0) {
+            printf("%s\n", strerror(errno));
         }
 
-        if (rName == NULL) {  // only <argv1> provided
-            if (execvp(lName, left) < 0) {
-                printf("%s\n", strerror(errno));
-                return (-errno);
-            }
-        }
-
-        if (lName == NULL) {  // only <argv2> provided
-            if (execvp(rName, right) < 0) {
-                printf("%s\n", strerror(errno));
-                return (-errno);
-            }
-        }
         close(reader);
-        close(writer);
 	}
 	else {
 	    // child process, run the <argv1> and redirect the output to the stdin
 	    // for parent to run the <argv2>
 	    close(reader);
-	    dup2(writer, STDOUT_FILENO);
-	    if (execvp(lName, left)< 0) {
+	    dup2(writer, STDOUT_FILENO);  // connect stdout as the writer
+	    if (execvp(lName, left) < 0) {
             printf("%s\n", strerror(errno));
 	        return (-errno);
 	    }
+	    close(writer);
 	}
     return 0;
 }
